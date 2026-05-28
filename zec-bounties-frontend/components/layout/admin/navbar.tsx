@@ -327,13 +327,13 @@ export function AdminNavbar({
 
           {/* Desktop nav links */}
           <div className="hidden xl:flex items-center space-x-4 text-sm font-medium mr-auto">
-            <Link
+            {/* <Link
               href="/admin/dashboard"
               prefetch
               className="transition-colors hover:text-primary"
             >
               Dashboard
-            </Link>
+            </Link> */}
             <Link
               href="/admin/bounties"
               className="transition-colors hover:text-primary"
@@ -352,6 +352,13 @@ export function AdminNavbar({
               className="transition-colors hover:text-primary"
             >
               Teams
+            </Link>
+            <Link
+              href="/admin/settings"
+              prefetch
+              className="transition-colors hover:text-primary"
+            >
+              Settings
             </Link>
           </div>
 
@@ -655,10 +662,11 @@ export function AdminNavbar({
 
                   <div className="flex flex-col gap-1">
                     {[
-                      { href: "/admin/dashboard", label: "Dashboard" },
+                      // { href: "/admin/dashboard", label: "Dashboard" },
                       { href: "/admin/bounties", label: "Bounties" },
                       { href: "/admin/export", label: "Export" },
                       { href: "/admin/teams", label: "Teams" },
+                      { href: "/admin/settings", label: "Settings" },
                     ].map(({ href, label }) => (
                       <Link
                         key={href}

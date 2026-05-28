@@ -675,7 +675,10 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     setZcashParams((prev) =>
       prev.map((param) => ({
         ...param,
-        isDefault: param.accountName === accountName,
+
+        isDefault:
+          param.accountName === accountName &&
+          (param.teamId ?? null) === (teamId ?? null),
       })),
     );
   };
