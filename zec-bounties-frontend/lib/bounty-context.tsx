@@ -760,10 +760,12 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
+      console.log(response);
+
       return {
         success: true,
         message: response.message || "Connection successful",
-        data: response.data,
+        data: response,
       };
     } catch (error) {
       console.error("Failed to test Zcash connection:", error);
