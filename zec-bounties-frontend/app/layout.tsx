@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 export const metadata: Metadata = {
   title: "ZEC Bounties | Bounty Platform",
   description:
-    "ZEC Bounties is a privacy-first bounty platform for the Zcash cryptocurrency (ZEC). Zcash is a digital currency providing censorship-resistant, secure, and private payments. ZEC Bounties enables bug bounties, community rewards, development incentives, and contributor programs designed to support innovation and growth across the Zcash ecosystem.",
+    "ZEC Bounties is a privacy-first bounty platform for the Zcash cryptocurrency (ZEC). Zcash is a digital currency providing censorship-resistant, secure, and private payments. ZEC Bounties enables bug bounties, community rewards, development incentives, and contributor programs designed to support innovation and growth across the Zcash ecosystem. It is a great way to earn Zcash (ZEC)",
 };
 
 export default function RootLayout({
