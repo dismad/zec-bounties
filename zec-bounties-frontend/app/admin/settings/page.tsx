@@ -602,12 +602,14 @@ function ConnectionTest({ accountName }: { accountName: string }) {
     "idle",
   );
   const [msg, setMsg] = useState("");
+  const [info, setInfo] = useState<any>(null);
 
   const test = async () => {
     setState("loading");
     const r = await testZcashConnection(accountName);
     setState(r.success ? "ok" : "fail");
     setMsg(r.message);
+    setInfo(r.data ?? null);
   };
 
   return (
@@ -626,12 +628,35 @@ function ConnectionTest({ accountName }: { accountName: string }) {
         )}
         Test connection
       </Button>
+
       {state === "ok" && (
-        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-          <CheckCheck className="w-3 h-3" />
-          {msg || "Connected"}
-        </span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 cursor-default">
+                <CheckCheck className="w-3 h-3" />
+                {msg || "Connected"}
+              </span>
+            </TooltipTrigger>
+            {info && (
+              <TooltipContent
+                side="bottom"
+                className="p-3 font-mono text-[11px]"
+              >
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {Object.entries(info).map(([key, value]) => (
+                    <div key={key} className="contents">
+                      <span className="text-muted-foreground">{key}</span>
+                      <span>{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       )}
+
       {state === "fail" && (
         <span className="text-[11px] text-destructive flex items-center gap-1">
           <XCircle className="w-3 h-3" />
@@ -1516,16 +1541,18 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <ConnectionTest accountName={c.accountName} />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      onClick={() => openEdit(c)}
-                    >
-                      <Edit className="w-3 h-3" />
-                      Edit server
-                    </Button>
+                    {isActive && <ConnectionTest accountName={c.accountName} />}
+                    {isActive && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => openEdit(c)}
+                      >
+                        <Edit className="w-3 h-3" />
+                        Edit server
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
