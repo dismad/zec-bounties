@@ -292,6 +292,12 @@ export function AdminNavbar({
     await Promise.all([fetchAddresses()]);
   };
 
+  const handleWalletClickMobile = async () => {
+    setTopupOpen(true);
+    setMobileMenuOpen(false);
+    await Promise.all([fetchAddresses()]);
+  };
+
   const handleSyncStatus = async () => {
     setIsSyncing(true);
     try {
@@ -705,10 +711,7 @@ export function AdminNavbar({
                   <Button
                     variant="outline"
                     className="gap-2 justify-start font-mono"
-                    onClick={() => {
-                      setTopupOpen(true);
-                      setMobileMenuOpen(false);
-                    }}
+                    onClick={handleWalletClickMobile}
                   >
                     <Wallet className="h-4 w-4" />
                     {balance
