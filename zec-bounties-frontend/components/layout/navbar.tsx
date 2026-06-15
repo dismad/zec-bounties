@@ -155,19 +155,25 @@ export function Navbar({
           {/* Desktop Navigation - Only show if logged in */}
           {currentUser && (
             <div className="hidden xl:flex items-center space-x-4 text-sm font-medium mr-auto">
-              {!isAdmin && (
+              {/* {!isAdmin && (
                 <Link
                   href="/dashboard"
                   className="transition-colors hover:text-primary"
                 >
                   Dashboard
                 </Link>
-              )}
+              )} */}
               <Link
                 href="/my-bounties"
                 className="transition-colors hover:text-primary"
               >
                 My Bounties
+              </Link>
+              <Link
+                href="/profile"
+                className="transition-colors hover:text-primary"
+              >
+                Profile
               </Link>
               {isAdmin && (
                 <Link
@@ -321,7 +327,7 @@ export function Navbar({
                   {currentUser && (
                     <>
                       <div className="flex flex-col gap-2">
-                        {!isAdmin && (
+                        {/* {!isAdmin && (
                           <Link
                             href="/dashboard"
                             className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
@@ -329,13 +335,20 @@ export function Navbar({
                           >
                             Dashboard
                           </Link>
-                        )}
+                        )} */}
                         <Link
                           href="/my-bounties"
                           className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           My Bounties
+                        </Link>
+                        <Link
+                          href="/profile"
+                          className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Profile
                         </Link>
                         {isAdmin && (
                           <Link

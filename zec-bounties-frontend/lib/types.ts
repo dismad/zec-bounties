@@ -14,6 +14,7 @@ export interface User {
   role: UserRole;
   createdAt: Date;
   z_address?: string; // Orchard Wallet
+  UA_address?: string | null;
   avatar?: string; // GitHub avatar URL
   githubId?: string; // GitHub username/ID
   isRobin: Boolean;

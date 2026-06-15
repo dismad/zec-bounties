@@ -119,7 +119,9 @@ interface BountyContextType {
   }>;
   deleteBounty: (id: string) => Promise<void>;
   zAddressUpdate: (z_address: string) => Promise<boolean | undefined>;
+  uaAddressUpdate: (UA_address: string) => Promise<boolean | undefined>;
   verifyZaddress: (z_address: string) => Promise<boolean | undefined>;
+  verifyUaddress: (z_address: string) => Promise<boolean | undefined>;
   fetchBounties: (reset?: boolean) => Promise<void>;
   loadMoreBounties: () => Promise<void>;
   hasMoreBounties: boolean;
@@ -2340,6 +2342,29 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const verifyUaddress = async (z_address: string) => {
+    if (!currentUser) return;
+
+    try {
+      const res = await fetch(`${backendUrl}/auth/verify-uaddress`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ z_address }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to verify zaddress");
+      }
+
+      const data = await res.json();
+      return data.isVerified as boolean;
+    } catch (error) {
+      console.error("Failed to verify zaddress:", error);
+      return false;
+    }
+  };
+
   const zAddressUpdate = async (z_address: string) => {
     if (!currentUser) return;
 
@@ -2361,6 +2386,26 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
   };
+
+  const uaAddressUpdate = async (UA_address: string) => {
+    if (!currentUser) return;
+    try {
+      const res = await fetch(`${backendUrl}/auth/update-ua-address`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ UA_address }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update UA address");
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to update UA address:", error);
+      return false;
+    }
+  };
+
   const fetchExportPayments = async (
     from?: string,
     to?: string,
@@ -2503,7 +2548,9 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         processBatchPayments,
         getPendingBatchPayments,
         zAddressUpdate,
+        uaAddressUpdate,
         verifyZaddress,
+        verifyUaddress,
         balance,
         fetchBalance,
         address,
