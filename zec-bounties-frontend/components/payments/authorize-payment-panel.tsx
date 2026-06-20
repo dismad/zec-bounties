@@ -11,11 +11,35 @@ export function AuthorizePaymentPanel() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const defaultWallet = zcashParams.find((p) => p.isDefault);
+
+  const walletChainToBountyChain = (
+    walletChain?: string,
+  ): "TEST" | "MAIN" | null => {
+    if (walletChain === "testnet") return "TEST";
+    if (walletChain === "mainnet") return "MAIN";
+    return null;
+  };
+
+  const activeChain = walletChainToBountyChain(defaultWallet?.chain);
+
   const eligibleBounties = bounties.filter(
-    (b) => b.status === "DONE" && b.isApproved && !b.isPaid,
+    (b) =>
+      b.status === "DONE" &&
+      b.isApproved &&
+      !b.isPaid &&
+      b.chain === activeChain,
   );
 
-  const defaultWallet = zcashParams.find((p) => p.isDefault);
+  console.log(eligibleBounties);
+
+  const blockedBounties = bounties.filter(
+    (b) =>
+      b.status === "DONE" &&
+      b.isApproved &&
+      !b.isPaid &&
+      b.chain !== activeChain,
+  );
 
   const toggleOne = (id: string) => {
     setSelectedIds((prev) => {
@@ -96,6 +120,28 @@ export function AuthorizePaymentPanel() {
         </div>
       )}
 
+      {defaultWallet && blockedBounties.length > 0 && (
+        <div className="flex items-start gap-2.5 text-sm p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
+          <span className="text-yellow-800 dark:text-yellow-200">
+            <span className="font-medium">
+              {blockedBounties.length} bounty
+              {blockedBounties.length > 1 ? "ies" : "y"} hidden
+            </span>{" "}
+            — your default wallet is on{" "}
+            <span className="font-medium">{defaultWallet.chain}</span> but{" "}
+            {blockedBounties.length > 1
+              ? "those bounties are"
+              : "that bounty is"}{" "}
+            on{" "}
+            <span className="font-medium">
+              {activeChain === "TEST" ? "mainnet" : "testnet"}
+            </span>
+            . Switch your default wallet to pay them.
+          </span>
+        </div>
+      )}
+
       {/* Select all + summary */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -139,13 +185,23 @@ export function AuthorizePaymentPanel() {
               <p className="text-sm font-medium truncate">{bounty.title}</p>
               <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
                 {bounty.assigneeUser?.name ?? "Unknown assignee"}
-                {bounty.assigneeUser?.z_address ? (
-                  <span className="text-green-600 flex items-center gap-0.5">
-                    <CheckCircle2 className="w-3 h-3" /> UA set
+                {bounty.chain === "MAIN" ? (
+                  bounty.assigneeUser?.UA_address ? (
+                    <span className="text-green-600 flex items-center gap-0.5">
+                      <CheckCircle2 className="w-3 h-3" /> UA set
+                    </span>
+                  ) : (
+                    <span className="text-red-600 flex items-center gap-0.5">
+                      <AlertTriangle className="w-3 h-3" /> No UA
+                    </span>
+                  )
+                ) : bounty.assigneeUser?.z_address ? (
+                  <span className="text-blue-600 flex items-center gap-0.5">
+                    <CheckCircle2 className="w-3 h-3" /> TA set
                   </span>
                 ) : (
                   <span className="text-yellow-600 flex items-center gap-0.5">
-                    <AlertTriangle className="w-3 h-3" /> no UA
+                    <AlertTriangle className="w-3 h-3" /> No TA
                   </span>
                 )}
               </p>
