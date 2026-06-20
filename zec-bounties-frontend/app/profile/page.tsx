@@ -299,7 +299,7 @@ export default function ProfilePage() {
                   </p>
                 )} */}
 
-                {uaVerified === true && (
+                {uaVerified === true && uaSaveState === "idle" && (
                   <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Address is valid
@@ -324,21 +324,26 @@ export default function ProfilePage() {
               )}
 
               {uaSaveState === "success" && (
-                <Alert className="py-2 border-green-500 bg-green-50 dark:bg-green-950/20">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-xs text-green-700 dark:text-green-400">
-                    Mainnet address saved successfully.
-                  </AlertDescription>
-                </Alert>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Mainnet address saved</p>
+                    <p className="text-xs text-muted-foreground">
+                      You can now receive mainnet bounty payments.
+                    </p>
+                  </div>
+                </div>
               )}
 
-              {/* <div className="flex justify-end gap-2 pt-1">
+              <div className="flex justify-end gap-2 pt-1">
                 {uaAddressDirty && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setUaAddress(currentUser.UA_address ?? "");
+                      setUaAddress(currentUser?.UA_address ?? "");
                       setUaError(null);
                       setUaSaveState("idle");
                     }}
@@ -352,7 +357,8 @@ export default function ProfilePage() {
                     !uaAddressDirty ||
                     !uaAddress.trim() ||
                     uaSaveState === "saving" ||
-                    !isValidUaAddress
+                    !isValidUaAddress ||
+                    uaVerified !== true
                   }
                   onClick={handleSaveUaAddress}
                   className="gap-1.5"
@@ -364,7 +370,7 @@ export default function ProfilePage() {
                   )}
                   Save address
                 </Button>
-              </div> */}
+              </div>
             </CardContent>
           </Card>
 
@@ -485,7 +491,7 @@ export default function ProfilePage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setZAddress(currentUser.z_address ?? "");
+                      setZAddress(currentUser?.z_address ?? "");
                       setZVerified(null);
                       setZError(null);
                     }}
