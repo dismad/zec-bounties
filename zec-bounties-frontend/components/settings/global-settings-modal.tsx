@@ -561,11 +561,11 @@ export function GlobalSettingsModal({
     setIsSettingDefault(config.accountName);
     try {
       await setDefaultWallet(config.accountName, config.teamId ?? undefined);
-      setSelectedConfig(config);
       toast({
         title: "Active wallet updated",
         description: `"${config.accountName}" is now active.`,
       });
+      window.location.reload();
     } catch {
       toast({
         title: "Error",

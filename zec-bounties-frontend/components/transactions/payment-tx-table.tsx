@@ -85,17 +85,21 @@ export function PaymentTxIdsTable({
       return {
         txHash: item,
         amount: null,
+        fee: null,
         status: "completed",
         createdAt: null,
         id: `tx-${index}`,
+        kind: undefined,
       };
     }
     return {
       txHash: extractTxHash(item),
       amount: item.value || null,
+      fee: item.fee || null,
       status: item.status || "completed",
       createdAt: item.datetime || null,
       id: item.id || item.txid || `tx-${index}`,
+      kind: item.kind as "sent" | "received" | undefined,
     };
   };
 
@@ -200,6 +204,9 @@ export function PaymentTxIdsTable({
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider w-16">
                   #
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">
+                  Kind
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Transaction ID
                 </th>
@@ -207,6 +214,9 @@ export function PaymentTxIdsTable({
                   <>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Amount
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Fee
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Date
@@ -235,6 +245,24 @@ export function PaymentTxIdsTable({
                       {paymentIDs.length - index}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
+                      {metadata.kind === "sent" ? (
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300 gap-1">
+                          <span>↑</span> Sent
+                        </Badge>
+                      ) : metadata.kind === "received" ? (
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 gap-1">
+                          <span>↓</span> Received
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-slate-400 gap-1"
+                        >
+                          <span>·</span> Unknown
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <code className="bg-slate-100 dark:bg-slate-600 px-2 py-1 rounded text-sm font-mono text-slate-900 dark:text-slate-100 max-w-xl">
                         <span className="hidden sm:inline">{txHash}</span>
                         <span className="sm:hidden">
@@ -251,6 +279,18 @@ export function PaymentTxIdsTable({
                               className="font-mono text-xs"
                             >
                               {formatAmount(metadata.amount)}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-400 text-sm">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {metadata.fee ? (
+                            <Badge
+                              variant="secondary"
+                              className="font-mono text-xs"
+                            >
+                              {formatAmount(metadata.fee)}
                             </Badge>
                           ) : (
                             <span className="text-slate-400 text-sm">N/A</span>
