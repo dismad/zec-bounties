@@ -49,7 +49,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Suspense fallback={<div>Loading...</div>}>
             <BountyProvider>
-              <ZAddressProvider>{children}</ZAddressProvider>
+              {/* <ZAddressProvider> */}
+              {children}
+              {/* </ZAddressProvider> */}
               <Toaster position="top-right" />
             </BountyProvider>
           </Suspense>
