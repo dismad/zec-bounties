@@ -44,6 +44,7 @@ export default function ProfilePage() {
     verifyZaddress,
     verifyUaddress,
     setCurrentUser,
+    nicknameUpdate,
   } = useBounty();
 
   // ── Testnet Z-address state ──────────────────────────────────────────────
@@ -59,6 +60,12 @@ export default function ProfilePage() {
   const [uaVerified, setUaVerified] = useState<boolean | null>(null);
   const [uaVerifying, setUaVerifying] = useState(false);
   const [uaError, setUaError] = useState<string | null>(null);
+  const [nickname, setNickname] = useState(currentUser?.nickname ?? "");
+  const [nicknameDirty, setNicknameDirty] = useState(false);
+  const [nicknameSaveState, setNicknameSaveState] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
 
   // Debounce ref for UA inline verification
   const uaDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -160,6 +167,30 @@ export default function ProfilePage() {
     }
   };
 
+  const handleNicknameChange = (value: string) => {
+    setNickname(value);
+    setNicknameDirty(value !== (currentUser?.nickname ?? ""));
+    setNicknameSaveState("idle");
+    setNicknameError(null);
+  };
+
+  const handleSaveNickname = async () => {
+    setNicknameSaveState("saving");
+    setNicknameError(null);
+    try {
+      const ok = await nicknameUpdate(nickname);
+      if (ok) {
+        setNicknameSaveState("success");
+        setNicknameDirty(false);
+      } else {
+        setNicknameSaveState("error");
+      }
+    } catch (err: any) {
+      setNicknameError(err.message ?? "Something went wrong");
+      setNicknameSaveState("error");
+    }
+  };
+
   // ── Derived ───────────────────────────────────────────────────────────────
 
   const zAddressDirty = zAddress !== (currentUser?.z_address ?? "");
@@ -225,6 +256,102 @@ export default function ProfilePage() {
                 <Label className="text-xs text-muted-foreground">Email</Label>
                 <Input value={currentUser?.email ?? ""} disabled />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Nickname
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    A short display name shown alongside your profile. Max 32
+                    characters.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-1.5">
+                <Label
+                  htmlFor="nickname"
+                  className="text-xs text-muted-foreground"
+                >
+                  Nickname
+                </Label>
+                <Input
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => handleNicknameChange(e.target.value)}
+                  placeholder="e.g. zechunter42"
+                  maxLength={32}
+                  className={cn(
+                    nicknameSaveState === "success" &&
+                      "border-green-500 focus-visible:ring-green-500",
+                    nicknameSaveState === "error" &&
+                      "border-destructive focus-visible:ring-destructive",
+                  )}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {nickname.length}/32
+                </p>
+              </div>
+
+              {nicknameError && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    {nicknameError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {nicknameSaveState === "success" && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Nickname saved</p>
+                    <p className="text-xs text-muted-foreground">
+                      Your nickname has been updated.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {nicknameDirty && (
+                <div className="flex justify-end gap-2 pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setNickname(currentUser?.nickname ?? "");
+                      setNicknameDirty(false);
+                      setNicknameSaveState("idle");
+                      setNicknameError(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={nicknameSaveState === "saving"}
+                    onClick={handleSaveNickname}
+                    className="gap-1.5"
+                  >
+                    {nicknameSaveState === "saving" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    Save nickname
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

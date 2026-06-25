@@ -241,7 +241,9 @@ export function BountyCard({
                   <AvatarFallback className="text-[9px]">?</AvatarFallback>
                 </Avatar>
                 <span className="text-[10px] text-muted-foreground truncate max-w-[70px]">
-                  {bounty.createdByUser?.name ?? "Unknown"}
+                  {bounty.createdByUser?.nickname ||
+                    bounty.createdByUser?.name ||
+                    "Unknown"}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -380,7 +382,7 @@ export function BountyCard({
                 {bounty.title}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {bounty.createdByUser?.name}
+                {bounty.createdByUser?.nickname || bounty.createdByUser?.name}
               </p>
             </div>
             {bounty.assignees && bounty.assignees.length > 0 ? (
@@ -572,7 +574,7 @@ export function BountyCard({
             </Avatar>
             <div>
               <p className="text-xs text-muted-foreground font-medium">
-                {bounty.createdByUser?.name}
+                {bounty.createdByUser?.nickname || bounty.createdByUser?.name}
               </p>
               <h3 className="font-semibold line-clamp-1 leading-tight group-hover:text-primary transition-colors">
                 {bounty.title}

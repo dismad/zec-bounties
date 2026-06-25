@@ -13,6 +13,7 @@ export interface User {
   email: string;
   role: UserRole;
   createdAt: Date;
+  nickname?: string;
   z_address?: string; // Orchard Wallet
   UA_address?: string | null;
   avatar?: string; // GitHub avatar URL
@@ -127,6 +128,7 @@ export interface BountyAssignee {
   user: {
     id: string;
     name: string;
+    nickname?: string;
     email: string;
     avatar?: string;
     z_address?: string;
