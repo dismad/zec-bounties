@@ -129,6 +129,8 @@ interface BountyContextType {
   bountiesPage: number;
   totalBountyAmount: number;
   totalBountyCount: number;
+  totalActiveCount: number;
+  statusCounts: Record<string, number>;
   fetchBountyById: (id: string) => Promise<Bounty | null>;
   fetchTransactionHashes: () => Promise<void>;
   applyToBounty: (bountyId: string, message: string) => Promise<void>;
@@ -319,6 +321,8 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
   const [hasMoreBounties, setHasMoreBounties] = useState(true);
   const [totalBountyAmount, setTotalBountyAmount] = useState(0);
   const [totalBountyCount, setTotalBountyCount] = useState(0);
+  const [totalActiveCount, setTotalActiveCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [zcashParams, setZcashParams] = useState<ZcashParams[]>([]);
   const [zcashParamsLoading, setZcashParamsLoading] = useState(false);
 
@@ -2078,6 +2082,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         incoming.length === BOUNTIES_PER_PAGE &&
           bounties.length + incoming.length < total,
       );
+      await fetchTotalStats();
     } catch (error) {
       console.error("Failed to fetch bounties:", error);
     } finally {
@@ -2100,6 +2105,8 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       setTotalBountyAmount(data.totalBountyAmount ?? 0);
       setTotalBountyCount(data.totalBountyCount ?? 0);
+      setTotalActiveCount(data.statusCounts?.IN_PROGRESS ?? 0);
+      setStatusCounts(data.statusCounts ?? {});
     } catch (error) {
       console.error("Failed to fetch bounty stats:", error);
     }
@@ -2235,6 +2242,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       setBounties((prev) =>
         prev.map((bounty) => (bounty.id === id ? updated : bounty)),
       );
+      await fetchTotalStats();
     } catch (error) {
       console.error("Failed to update bounty status:", error);
       throw error;
@@ -2607,6 +2615,8 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         bountiesPage,
         totalBountyAmount,
         totalBountyCount,
+        totalActiveCount,
+        statusCounts,
         fetchBountyById,
         applyToBounty,
         editBounty,

@@ -119,6 +119,8 @@ export default function AdminDashboard() {
     currentUser,
     allSubmissions,
     fetchAllSubmissions,
+    totalActiveCount,
+    statusCounts,
   } = useBounty();
 
   const [activeTab, setActiveTab] = useState<"overview" | "payments" | "txids">(
@@ -287,9 +289,7 @@ export default function AdminDashboard() {
   };
 
   const totalRewards = totalBountyAmount;
-  const activeBounties = bounties.filter(
-    (b) => b.status === "TO_DO" || b.status === "IN_PROGRESS",
-  ).length;
+  const activeBountiesAmount = totalActiveCount;
   const totalHunters = nonAdminUsers.filter((u) => u.role === "CLIENT").length;
   const completedBounties = bounties.filter(
     (b) => b.status === "DONE" && !b.isPaid,
@@ -414,9 +414,11 @@ export default function AdminDashboard() {
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{activeBounties}</div>
+                  <div className="text-2xl font-bold">
+                    {activeBountiesAmount}
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    12 pending approval
+                    {statusCounts?.TO_DO ?? 0} pending approval
                   </p>
                 </CardContent>
               </Card>
