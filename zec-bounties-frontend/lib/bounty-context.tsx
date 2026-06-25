@@ -84,6 +84,7 @@ interface BountyContextType {
     otp: string,
     accountName: string,
   ) => Promise<RecoveryData>;
+  nicknameUpdate: (nickname: string) => Promise<boolean | undefined>;
 
   // Role switching (isRobin users only)
   switchRole: () => Promise<void>;
@@ -1975,6 +1976,23 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
               ),
             );
             break;
+
+          case "user_updated":
+            if (msg.payload.id === currentUser?.id) {
+              setCurrentUser((prev) =>
+                prev ? { ...prev, ...msg.payload } : prev,
+              );
+              localStorage.setItem(
+                "currentUser",
+                JSON.stringify({
+                  ...currentUser,
+                  ...msg.payload,
+                }),
+              );
+            }
+            fetchBounties();
+            fetchUsers();
+            break;
         }
       };
 
@@ -2390,6 +2408,28 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const nicknameUpdate = async (nickname: string) => {
+    if (!currentUser) return;
+    try {
+      const res = await fetch(`${backendUrl}/auth/update-nickname`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ nickname }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to update nickname");
+      }
+      const data = await res.json();
+      setCurrentUser(data.user);
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+      return true;
+    } catch (error) {
+      console.error("Failed to update nickname:", error);
+      return false;
+    }
+  };
+
   const uaAddressUpdate = async (UA_address: string) => {
     if (!currentUser) return;
     try {
@@ -2515,6 +2555,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         isSwitchingRole,
         requestRecoveryOtp,
         verifyRecoveryOtp,
+        nicknameUpdate,
         categories,
         categoriesLoading,
         fetchCategories,

@@ -593,7 +593,9 @@ export function BountyDetailModal({
                   </AvatarFallback>
                 </Avatar>
                 <p className="text-sm font-medium">
-                  {bounty.createdByUser?.name || "Unknown"}
+                  {bounty.createdByUser?.nickname ||
+                    bounty.createdByUser?.name ||
+                    "Unknown"}
                 </p>
               </div>
             </div>
@@ -624,7 +626,7 @@ export function BountyDetailModal({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-primary truncate">
-                            {a.user?.name || "Unknown"}
+                            {a.user?.nickname || a.user?.name || "Unknown"}
                           </p>
                           <div className="flex items-center gap-1.5">
                             {a.userId === currentUser?.id && (

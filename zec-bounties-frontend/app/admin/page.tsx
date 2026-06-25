@@ -140,7 +140,7 @@ export default function AdminDashboard() {
   const [assigneeSectionBounty, setAssigneeSectionBounty] =
     useState<Bounty | null>(null);
   const [winnerBounty, setWinnerBounty] = useState<Bounty | null>(null);
-  const [chainFilter, setChainFilter] = useState<"MAIN" | "TEST">("TEST");
+  const [chainFilter, setChainFilter] = useState<"MAIN" | "TEST">("MAIN");
   const [showExportModal, setShowExportModal] = useState(false);
 
   // Filtered bounties for the table

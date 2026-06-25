@@ -2,7 +2,17 @@ import { useState } from "react";
 import { useBounty } from "@/lib/bounty-context";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertTriangle, CheckCircle2, Coins } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AlertTriangle, CheckCircle2, Coins, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function AuthorizePaymentPanel() {
@@ -10,6 +20,7 @@ export function AuthorizePaymentPanel() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const defaultWallet = zcashParams.find((p) => p.isDefault);
 
@@ -87,6 +98,29 @@ export function AuthorizePaymentPanel() {
         description,
         duration: 8000, // keep it visible longer for technical errors
       });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleConfirmAuthorize = async () => {
+    setShowConfirm(false);
+    setIsProcessing(true);
+    try {
+      const result = await authorizeDuePayment(Array.from(selectedIds));
+      toast.success("Payment authorized", {
+        description:
+          `${result.paidCount} bounty payment(s) sent` +
+          (result.skipped.length > 0
+            ? `. ${result.skipped.length} skipped (missing address).`
+            : "."),
+      });
+      setSelectedIds(new Set());
+    } catch (error: any) {
+      const [title, ...rest] = error.message?.split(": ") ?? [];
+      const description =
+        rest.join(": ") || error.message || "Failed to authorize payment";
+      toast.error(title || "Payment failed", { description, duration: 8000 });
     } finally {
       setIsProcessing(false);
     }
@@ -215,7 +249,7 @@ export function AuthorizePaymentPanel() {
 
       {/* Authorize button */}
       <Button
-        onClick={handleAuthorize}
+        onClick={() => setShowConfirm(true)}
         disabled={selectedIds.size === 0 || isProcessing || !defaultWallet}
         className="w-full"
       >
@@ -223,6 +257,84 @@ export function AuthorizePaymentPanel() {
           ? "Processing..."
           : `Authorize ${selectedIds.size > 0 ? `${selectedIds.size} Payment${selectedIds.size > 1 ? "s" : ""}` : "Payment"}`}
       </Button>
+
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Payment</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  You are about to authorize{" "}
+                  <span className="font-semibold text-foreground">
+                    {selectedIds.size} payment{selectedIds.size > 1 ? "s" : ""}
+                  </span>{" "}
+                  totalling{" "}
+                  <span className="font-semibold text-foreground">
+                    {totalSelected.toFixed(4)} ZEC
+                  </span>{" "}
+                  from wallet{" "}
+                  <span className="font-semibold text-foreground">
+                    {defaultWallet?.accountName}
+                  </span>{" "}
+                  on{" "}
+                  <span className="font-semibold text-foreground">
+                    {defaultWallet?.chain}
+                  </span>
+                  .
+                </p>
+
+                {/* Summary of selected bounties */}
+                <div className="rounded-lg border bg-muted/40 divide-y max-h-48 overflow-y-auto">
+                  {bounties
+                    .filter((b) => selectedIds.has(b.id))
+                    .map((b) => (
+                      <div
+                        key={b.id}
+                        className="flex items-center justify-between px-3 py-2 text-sm"
+                      >
+                        <span className="truncate text-foreground font-medium max-w-[60%]">
+                          {b.title}
+                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs text-muted-foreground">
+                            {b.assigneeUser?.name ?? "Unknown"}
+                          </span>
+                          <span className="font-mono text-xs font-semibold">
+                            {b.bountyAmount.toFixed(4)} ZEC
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                <p className="text-xs text-destructive font-medium">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isProcessing}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAuthorize}
+              disabled={isProcessing}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm & Send"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
