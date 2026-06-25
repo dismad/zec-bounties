@@ -194,6 +194,7 @@ interface BountyContextType {
   // Fetch methods
   fetchUserApplications: () => Promise<void>;
   fetchAllUsersApplications: () => Promise<void>;
+  fetchAllSubmissions: () => Promise<WorkSubmission[]>;
   fetchBountyApplications: (bountyId: string) => Promise<BountyApplication[]>;
 
   // Get methods
@@ -1204,6 +1205,20 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
       setAllApplications(data);
     } catch (error) {
       console.error("Failed to fetch applications:", error);
+    }
+  };
+
+  const fetchAllSubmissions = async (): Promise<WorkSubmission[]> => {
+    if (!currentUser || currentUser.role !== "ADMIN") return [];
+    try {
+      const res = await fetch(`${backendUrl}/api/bounties/submissions/all`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to fetch all submissions");
+      return await res.json();
+    } catch (error) {
+      console.error("Failed to fetch all submissions:", error);
+      return [];
     }
   };
 
@@ -2592,6 +2607,7 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
         applications,
         fetchUserApplications,
         fetchAllUsersApplications,
+        fetchAllSubmissions,
         getAllApplicationForBounty,
         fetchBountyApplications,
         getUserApplicationForBounty,
