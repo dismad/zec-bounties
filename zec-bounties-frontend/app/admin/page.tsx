@@ -117,6 +117,7 @@ export default function AdminDashboard() {
     paymentServerUrl,
     fetchTransactionHashes,
     currentUser,
+    fetchAllSubmissions,
   } = useBounty();
 
   const [activeTab, setActiveTab] = useState<"overview" | "payments" | "txids">(
@@ -158,32 +159,9 @@ export default function AdminDashboard() {
   );
 
   useEffect(() => {
-    const loadAllSubmissions = async () => {
-      if (!currentUser) return;
-
-      const results = await Promise.allSettled(
-        bounties.map((bounty) => fetchWorkSubmissions(bounty.id)),
-      );
-
-      const allSubs: WorkSubmission[] = [];
-      results.forEach((result, i) => {
-        if (result.status === "fulfilled") {
-          allSubs.push(...result.value);
-        } else {
-          console.error(
-            `Failed to load submissions for bounty ${bounties[i].id}:`,
-            result.reason,
-          );
-        }
-      });
-
-      setAllSubmissions(allSubs);
-    };
-
-    if (bounties.length > 0 && currentUser) {
-      loadAllSubmissions();
-    }
-  }, [bounties, fetchWorkSubmissions, currentUser]);
+    if (!currentUser) return;
+    fetchAllSubmissions().then((subs) => setAllSubmissions(subs));
+  }, [currentUser]);
 
   const handleStatusChange = async (
     bountyId: string,
