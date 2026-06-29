@@ -128,10 +128,9 @@ export default function MarketplacePage() {
       <div className="imd:container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight">Welcome!</h1>
-            <p className="text-muted-foreground text-lg max-w-2xl">
-              Complete tasks to earn ZEC. You could also create yours and get
-              ZEC for it.
+            <h1 className="text-3xl font-extrabold">Admin Console</h1>
+            <p className="text-muted-foreground">
+              Platform-wide overview and management
             </p>
           </div>
           <div className="flex gap-3">
@@ -141,11 +140,6 @@ export default function MarketplacePage() {
             >
               <Plus className="mr-2 h-4 w-4" /> New Bounty
             </Button>
-            <Link href="/my-bounties">
-              <Button variant="outline" className="rounded-full bg-transparent">
-                My Submissions <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
           </div>
         </div>
 
