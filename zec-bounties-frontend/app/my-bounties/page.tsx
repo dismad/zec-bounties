@@ -9,8 +9,10 @@ import {
   BarChart2,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
-import { BountyCard } from "@/components/bounty-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -72,7 +74,6 @@ const MONTH_LABELS = [
 
 type ViewMode = "bounties" | "earnings";
 
-/** Check both the legacy scalar `assignee` field and the `assignees` join array. */
 function isAssignedToUser(bounty: Bounty, userId: string): boolean {
   if (bounty.assignee === userId) return true;
   const arr = (bounty as any).assignees;
@@ -89,14 +90,13 @@ export default function MyBountiesPage() {
   const [isNewBountyModalOpen, setIsNewBountyModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("bounties");
   const [statusFilter, setStatusFilter] = useState<BountyStatus | "ALL">("ALL");
-
-  // Full dataset for earnings — fetched once, bypasses the 10-item pagination
   const [allUserBounties, setAllUserBounties] = useState<Bounty[]>([]);
   const [earningsLoading, setEarningsLoading] = useState(false);
   const [earningsFetched, setEarningsFetched] = useState(false);
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<number | null>(null);
 
-  // Kanban / list use the already-loaded paginated bounties
+  const router = useRouter();
+
   const userBounties = useMemo(() => {
     if (!currentUser) return [];
     if (currentUser.role === "ADMIN") return bounties;
@@ -106,7 +106,6 @@ export default function MyBountiesPage() {
     );
   }, [bounties, currentUser]);
 
-  // Filtered bounties based on selected status pill
   const visibleBounties = useMemo(
     () =>
       statusFilter === "ALL"
@@ -115,7 +114,6 @@ export default function MyBountiesPage() {
     [userBounties, statusFilter],
   );
 
-  // Bounties grouped by status for the "ALL" view
   const groupedBounties = useMemo(
     () =>
       STATUS_COLUMNS.map((col) => ({
@@ -142,28 +140,23 @@ export default function MyBountiesPage() {
   const fetchAllForEarnings = useCallback(async () => {
     if (!currentUser || earningsFetched) return;
     setEarningsLoading(true);
-
     try {
       const PAGE_SIZE = 50;
       let page = 1;
       let collected: Bounty[] = [];
       let keepGoing = true;
-
       while (keepGoing) {
         const res = await fetch(
           `${backendUrl}/api/bounties?page=${page}&limit=${PAGE_SIZE}`,
         );
         if (!res.ok) break;
-
         const data = await res.json();
         const items: Bounty[] = Array.isArray(data) ? data : (data.data ?? []);
         const total: number = data.total ?? items.length;
-
         collected = [...collected, ...items];
         keepGoing = items.length === PAGE_SIZE && collected.length < total;
         page++;
       }
-
       const mine =
         currentUser.role === "ADMIN"
           ? collected
@@ -172,7 +165,6 @@ export default function MyBountiesPage() {
                 b.createdBy === currentUser.id ||
                 isAssignedToUser(b, currentUser.id),
             );
-
       setAllUserBounties(mine);
     } catch (err) {
       console.error("Failed to fetch all bounties for earnings:", err);
@@ -191,7 +183,6 @@ export default function MyBountiesPage() {
     const mapAmount: Record<number, number> = {};
     const mapBounties: Record<number, Bounty[]> = {};
     const source = earningsFetched ? allUserBounties : userBounties;
-
     source
       .filter((b) => b.status === "DONE")
       .forEach((b) => {
@@ -203,7 +194,6 @@ export default function MyBountiesPage() {
         mapAmount[m] = (mapAmount[m] || 0) + b.bountyAmount;
         mapBounties[m] = [...(mapBounties[m] || []), b];
       });
-
     return MONTH_LABELS.map((label, i) => ({
       label,
       amount: mapAmount[i] || 0,
@@ -221,9 +211,26 @@ export default function MyBountiesPage() {
       .reduce((s, b) => s + b.bountyAmount, 0);
   }, [allUserBounties, userBounties, earningsFetched]);
 
+  const missingUA = !currentUser?.UA_address;
+
   const openBounty = (bounty: Bounty) => {
     setSelectedBounty(bounty);
     setIsDetailModalOpen(true);
+  };
+
+  const handleNewBounty = () => {
+    if (!currentUser?.UA_address) {
+      toast.warning("Unified Address required", {
+        description: "Add a UA to your profile before creating a bounty.",
+        action: {
+          label: "Go to profile",
+          onClick: () => router.push("/profile"),
+        },
+        duration: 5000,
+      });
+      return;
+    }
+    setIsNewBountyModalOpen(true);
   };
 
   return (
@@ -244,142 +251,72 @@ export default function MyBountiesPage() {
           onCancel={() => setIsNewBountyModalOpen(false)}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-3 sam:px-4 imd:px-6 lg:px-8 py-5 imd:py-8">
           {/* ── Header ── */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div className="flex flex-col imd:flex-row imd:items-end justify-between gap-3 mb-5 imd:mb-8">
             <div>
-              <h1 className="text-3xl font-extrabold mb-1">My Bounties</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sam:text-3xl font-extrabold mb-1">
+                My Bounties
+              </h1>
+              <p className="text-sm text-muted-foreground">
                 Track your active submissions, history, and earnings.
               </p>
             </div>
             <Button
               className="gap-2 rounded-full shadow-lg shadow-primary/20 shrink-0"
-              onClick={() => setIsNewBountyModalOpen(true)}
+              onClick={handleNewBounty}
             >
               <Plus className="w-4 h-4" /> New Bounty
             </Button>
           </div>
 
-          {/* ── Stats ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-card border-border">
-              <CardContent className="pt-5 pb-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      Total Earned
-                    </p>
-                    <p className="text-xl font-bold mt-0.5">
-                      {(earningsFetched
-                        ? totalEarnedAllTime
-                        : stats.totalRewards
-                      ).toLocaleString()}{" "}
-                      ZEC
-                    </p>
+          {/* ── Stats — 2-col on phones, 4-col on imd+ ── */}
+          <div className="grid grid-cols-2 imd:grid-cols-4 gap-2 sam:gap-3 imd:gap-4 mb-5 imd:mb-8">
+            {[
+              {
+                label: "Total Earned",
+                Icon: TrendingUp,
+                value: (
+                  <>
+                    {(earningsFetched
+                      ? totalEarnedAllTime
+                      : stats.totalRewards
+                    ).toLocaleString()}{" "}
+                    <span className="text-xs font-medium">ZEC</span>
+                  </>
+                ),
+              },
+              { label: "Active", Icon: Clock, value: stats.activeBounties },
+              { label: "Completed", Icon: CheckCircle, value: stats.completed },
+              {
+                label: "Applications",
+                Icon: AlertCircle,
+                value: stats.totalApplications,
+              },
+            ].map(({ label, Icon, value }) => (
+              <Card key={label} className="bg-card border-border">
+                <CardContent className="pt-3 pb-3 px-3 sam:pt-4 sam:pb-4 sam:px-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="text-base sam:text-lg font-bold mt-0.5 truncate">
+                        {value}
+                      </p>
+                    </div>
+                    <Icon className="w-5 h-5 sam:w-6 sam:h-6 text-primary opacity-20 shrink-0" />
                   </div>
-                  <TrendingUp className="w-7 h-7 text-primary opacity-20" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardContent className="pt-5 pb-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Active</p>
-                    <p className="text-xl font-bold mt-0.5">
-                      {stats.activeBounties}
-                    </p>
-                  </div>
-                  <Clock className="w-7 h-7 text-primary opacity-20" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardContent className="pt-5 pb-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Completed</p>
-                    <p className="text-xl font-bold mt-0.5">
-                      {stats.completed}
-                    </p>
-                  </div>
-                  <CheckCircle className="w-7 h-7 text-primary opacity-20" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardContent className="pt-5 pb-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      Applications
-                    </p>
-                    <p className="text-xl font-bold mt-0.5">
-                      {stats.totalApplications}
-                    </p>
-                  </div>
-                  <AlertCircle className="w-7 h-7 text-primary opacity-20" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* ── Toolbar ── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b mb-6">
-            <h2 className="text-xl font-bold">All Bounties</h2>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* ── Status filter pills (shown only on bounties view) ── */}
-              {viewMode === "bounties" && (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {/* All pill */}
-                  <button
-                    onClick={() => setStatusFilter("ALL")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-sm transition-all ${
-                      statusFilter === "ALL"
-                        ? "border-border bg-muted font-medium text-foreground"
-                        : "border-transparent text-muted-foreground hover:bg-muted/50"
-                    }`}
-                  >
-                    All
-                    <span className="text-[11px] bg-muted text-muted-foreground rounded-full px-1.5 py-px">
-                      {userBounties.length}
-                    </span>
-                  </button>
-
-                  {/* Per-status pills */}
-                  {STATUS_COLUMNS.map((col) => {
-                    const count = userBounties.filter(
-                      (b) => b.status === col.status,
-                    ).length;
-                    const isActive = statusFilter === col.status;
-                    return (
-                      <button
-                        key={col.status}
-                        onClick={() => setStatusFilter(col.status)}
-                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-sm transition-all ${
-                          isActive
-                            ? "border-border bg-muted font-medium text-foreground"
-                            : "border-transparent text-muted-foreground hover:bg-muted/50"
-                        }`}
-                      >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${col.dotColor}`}
-                        />
-                        {col.label}
-                        <span className="text-[11px] bg-muted text-muted-foreground rounded-full px-1.5 py-px">
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* ── Earnings toggle ── */}
+          <div className="flex flex-col gap-2 sam:gap-3 pb-3 sam:pb-4 border-b mb-4 sam:mb-6">
+            {/* Title row + earnings toggle */}
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base sam:text-lg imd:text-xl font-bold">
+                All Bounties
+              </h2>
               <Button
                 variant={viewMode === "earnings" ? "secondary" : "ghost"}
                 size="icon"
@@ -394,6 +331,53 @@ export default function MyBountiesPage() {
                 <BarChart2 className="h-4 w-4" />
               </Button>
             </div>
+
+            {/* Status pills — horizontal scroll on phones, wraps on imd+ */}
+            {viewMode === "bounties" && (
+              <div className="overflow-x-auto -mx-3 px-3 sam:-mx-4 sam:px-4 imd:mx-0 imd:px-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex items-center gap-1 sam:gap-1.5 min-w-max imd:min-w-0 imd:flex-wrap">
+                  <button
+                    onClick={() => setStatusFilter("ALL")}
+                    className={`flex items-center gap-1 sam:gap-1.5 px-2.5 sam:px-3 py-1.5 rounded-full border text-xs sam:text-sm transition-all whitespace-nowrap ${
+                      statusFilter === "ALL"
+                        ? "border-border bg-muted font-medium text-foreground"
+                        : "border-transparent text-muted-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    All
+                    <span className="text-[10px] sam:text-[11px] bg-muted text-muted-foreground rounded-full px-1.5 py-px">
+                      {userBounties.length}
+                    </span>
+                  </button>
+
+                  {STATUS_COLUMNS.map((col) => {
+                    const count = userBounties.filter(
+                      (b) => b.status === col.status,
+                    ).length;
+                    const isActive = statusFilter === col.status;
+                    return (
+                      <button
+                        key={col.status}
+                        onClick={() => setStatusFilter(col.status)}
+                        className={`flex items-center gap-1 sam:gap-1.5 px-2.5 sam:px-3 py-1.5 rounded-full border text-xs sam:text-sm transition-all whitespace-nowrap ${
+                          isActive
+                            ? "border-border bg-muted font-medium text-foreground"
+                            : "border-transparent text-muted-foreground hover:bg-muted/50"
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${col.dotColor}`}
+                        />
+                        {col.label}
+                        <span className="text-[10px] sam:text-[11px] bg-muted text-muted-foreground rounded-full px-1.5 py-px">
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Bounties view ── */}
@@ -402,55 +386,42 @@ export default function MyBountiesPage() {
               {userBounties.length === 0 ? (
                 <EmptyState />
               ) : visibleBounties.length === 0 ? (
-                <div className="text-center py-20 border rounded-xl bg-muted/20">
-                  <p className="text-muted-foreground">
+                <div className="text-center py-14 imd:py-20">
+                  <p className="text-sm text-muted-foreground">
                     No bounties with this status.
                   </p>
                 </div>
-              ) : statusFilter === "ALL" ? (
-                /* Grouped by status when showing all */
-                <div className="space-y-8">
-                  {groupedBounties
-                    .filter((col) => col.bounties.length > 0)
-                    .map((col) => (
-                      <div key={col.status} className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`h-2 w-2 rounded-full ${col.dotColor}`}
-                          />
-                          <h3 className="text-sm font-semibold">{col.label}</h3>
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] h-5 px-1.5"
-                          >
-                            {col.bounties.length}
-                          </Badge>
-                          <div className="flex-1 border-t border-border/50 ml-1" />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          {col.bounties.map((bounty) => (
-                            <BountyCard
-                              key={bounty.id}
-                              bounty={bounty}
-                              viewMode="list"
-                              onClick={() => openBounty(bounty)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                </div>
               ) : (
-                /* Flat list when a single status is selected */
-                <div className="flex flex-col gap-2">
-                  {visibleBounties.map((bounty) => (
-                    <BountyCard
-                      key={bounty.id}
-                      bounty={bounty}
-                      viewMode="list"
-                      onClick={() => openBounty(bounty)}
-                    />
-                  ))}
+                <div className="divide-y divide-border/50">
+                  {(statusFilter === "ALL"
+                    ? STATUS_COLUMNS.flatMap(
+                        (col) =>
+                          groupedBounties.find((g) => g.status === col.status)
+                            ?.bounties ?? [],
+                      )
+                    : visibleBounties
+                  ).map((bounty) => {
+                    const col = STATUS_COLUMNS.find(
+                      (c) => c.status === bounty.status,
+                    )!;
+                    return (
+                      <div
+                        key={bounty.id}
+                        onClick={() => openBounty(bounty)}
+                        className="flex items-center gap-3 py-3 sam:py-3.5 cursor-pointer group"
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full shrink-0 ${col.dotColor}`}
+                        />
+                        <p className="flex-1 min-w-0 text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                          {bounty.title}
+                        </p>
+                        <span className="text-xs tabular-nums text-muted-foreground shrink-0">
+                          {bounty.bountyAmount.toLocaleString()} ZEC
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </>
@@ -458,19 +429,21 @@ export default function MyBountiesPage() {
 
           {/* ── Monthly Earnings ── */}
           {viewMode === "earnings" && (
-            <div className="space-y-6">
-              {/* Header row */}
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 imd:space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-bold">Earnings Overview</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {new Date().getFullYear()} — click any month to see details
+                  <h2 className="text-base sam:text-lg imd:text-xl font-bold">
+                    Earnings Overview
+                  </h2>
+                  <p className="text-xs sam:text-sm text-muted-foreground mt-0.5">
+                    {new Date().getFullYear()} — tap a month for details
                   </p>
                 </div>
                 {!earningsLoading && yearTotal > 0 && (
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-xs text-muted-foreground">Year total</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-lg sam:text-xl imd:text-2xl font-bold">
                       {yearTotal.toLocaleString()} ZEC
                     </p>
                   </div>
@@ -478,25 +451,25 @@ export default function MyBountiesPage() {
               </div>
 
               {earningsLoading ? (
-                <div className="flex items-center justify-center py-24 gap-3 text-muted-foreground">
+                <div className="flex items-center justify-center py-20 gap-3 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span className="text-sm">Loading earnings…</span>
                 </div>
               ) : yearTotal === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 border rounded-xl bg-muted/10 gap-2">
+                <div className="flex flex-col items-center justify-center py-20 border rounded-xl bg-muted/10 gap-2">
                   <CheckCircle className="h-8 w-8 text-muted-foreground/30" />
                   <p className="text-sm text-muted-foreground">
                     No completed bounties this year yet.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                  {/* ── Left: chart ── */}
-                  <div className="lg:col-span-3">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 imd:gap-6 items-start">
+                  {/* Left: bar chart + month list */}
+                  <div className="lg:col-span-3 space-y-3 imd:space-y-4">
                     <Card className="bg-card border-border">
-                      <CardContent className="pt-6 pb-4 px-4">
-                        {/* Chart area */}
-                        <div className="flex items-end gap-1.5 h-48">
+                      <CardContent className="pt-4 pb-3 px-2 sam:px-3 imd:px-4">
+                        {/* Bar chart */}
+                        <div className="flex items-end gap-0.5 sam:gap-1 imd:gap-1.5 h-28 sam:h-36 imd:h-48">
                           {monthlyEarnings.map((m, i) => {
                             const heightPct =
                               maxEarning > 0
@@ -507,13 +480,13 @@ export default function MyBountiesPage() {
                             return (
                               <div
                                 key={m.label}
-                                className={`flex flex-col flex-1 items-center gap-0 h-full justify-end ${hasData ? "cursor-pointer" : "cursor-default"}`}
+                                className={`flex flex-col flex-1 items-center h-full justify-end ${hasData ? "cursor-pointer" : "cursor-default"}`}
                                 onClick={() =>
                                   hasData &&
                                   setSelectedMonthIdx(isSelected ? null : i)
                                 }
                               >
-                                <div className="w-full flex flex-col justify-end h-44 relative group">
+                                <div className="w-full flex flex-col justify-end h-24 sam:h-32 imd:h-44 relative group">
                                   {hasData && (
                                     <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
                                       <div className="bg-foreground text-background text-[10px] font-medium px-1.5 py-0.5 rounded whitespace-nowrap">
@@ -521,9 +494,9 @@ export default function MyBountiesPage() {
                                       </div>
                                     </div>
                                   )}
-                                  <div className="w-full rounded-md overflow-hidden bg-muted h-44 relative">
+                                  <div className="w-full rounded-sm imd:rounded-md overflow-hidden bg-muted h-24 sam:h-32 imd:h-44 relative">
                                     <div
-                                      className={`absolute bottom-0 left-0 right-0 rounded-md transition-all duration-500 ease-out ${
+                                      className={`absolute bottom-0 left-0 right-0 rounded-sm imd:rounded-md transition-all duration-500 ease-out ${
                                         isSelected
                                           ? "bg-primary"
                                           : hasData
@@ -546,11 +519,11 @@ export default function MyBountiesPage() {
                         </div>
 
                         {/* Month labels */}
-                        <div className="flex gap-1.5 mt-2">
+                        <div className="flex gap-0.5 sam:gap-1 imd:gap-1.5 mt-1.5">
                           {monthlyEarnings.map((m, i) => (
                             <div
                               key={m.label}
-                              className={`flex-1 text-center text-[10px] font-medium transition-colors ${
+                              className={`flex-1 text-center font-medium transition-colors text-[8px] sam:text-[9px] imd:text-[10px] ${
                                 selectedMonthIdx === i
                                   ? "text-primary"
                                   : "text-muted-foreground"
@@ -564,7 +537,7 @@ export default function MyBountiesPage() {
                     </Card>
 
                     {/* Month summary list */}
-                    <div className="mt-4 space-y-1">
+                    <div className="space-y-0.5">
                       {monthlyEarnings
                         .filter((m) => m.amount > 0)
                         .map((m) => {
@@ -573,7 +546,7 @@ export default function MyBountiesPage() {
                           return (
                             <button
                               key={m.label}
-                              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border transition-all text-left ${
+                              className={`w-full flex items-center justify-between px-3 sam:px-4 py-3 rounded-lg border transition-all text-left min-h-[48px] ${
                                 isSelected
                                   ? "border-primary/50 bg-primary/5"
                                   : "border-transparent hover:border-border hover:bg-muted/30"
@@ -582,7 +555,7 @@ export default function MyBountiesPage() {
                                 setSelectedMonthIdx(isSelected ? null : idx)
                               }
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 sam:gap-3">
                                 <span
                                   className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? "bg-primary" : "bg-muted-foreground/40"}`}
                                 />
@@ -602,7 +575,7 @@ export default function MyBountiesPage() {
                                 </Badge>
                               </div>
                               <span
-                                className={`text-sm font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}
+                                className={`text-sm font-semibold tabular-nums ${isSelected ? "text-primary" : "text-foreground"}`}
                               >
                                 {m.amount.toLocaleString()} ZEC
                               </span>
@@ -612,10 +585,10 @@ export default function MyBountiesPage() {
                     </div>
                   </div>
 
-                  {/* ── Right: drill-down ── */}
+                  {/* Right: drill-down panel */}
                   <div className="lg:col-span-2">
                     {selectedMonthIdx === null ? (
-                      <div className="flex flex-col items-center justify-center h-48 rounded-xl border border-dashed border-border text-center px-6">
+                      <div className="flex flex-col items-center justify-center h-36 imd:h-48 rounded-xl border border-dashed border-border text-center px-6">
                         <BarChart2 className="h-6 w-6 text-muted-foreground/30 mb-2" />
                         <p className="text-sm text-muted-foreground">
                           Select a month to see its bounties
@@ -623,14 +596,14 @@ export default function MyBountiesPage() {
                       </div>
                     ) : (
                       <Card className="bg-card border-border overflow-hidden">
-                        <div className="px-4 pt-4 pb-3 border-b border-border">
+                        <div className="px-3 sam:px-4 pt-3 sam:pt-4 pb-3 border-b border-border">
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
                                 {MONTH_LABELS[selectedMonthIdx]}{" "}
                                 {new Date().getFullYear()}
                               </p>
-                              <p className="text-2xl font-bold mt-0.5">
+                              <p className="text-lg sam:text-xl imd:text-2xl font-bold mt-0.5">
                                 {monthlyEarnings[
                                   selectedMonthIdx
                                 ].amount.toLocaleString()}{" "}
@@ -653,12 +626,12 @@ export default function MyBountiesPage() {
                           </div>
                         </div>
 
-                        <div className="divide-y divide-border max-h-96 overflow-y-auto">
+                        <div className="divide-y divide-border max-h-72 imd:max-h-96 overflow-y-auto">
                           {monthlyEarnings[selectedMonthIdx].bounties.map(
                             (b) => (
                               <div
                                 key={b.id}
-                                className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer group"
+                                className="flex items-center gap-3 px-3 sam:px-4 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer group min-h-[52px]"
                                 onClick={() => openBounty(b)}
                               >
                                 <div className="h-2 w-2 rounded-full bg-green-500 shrink-0" />
@@ -686,7 +659,7 @@ export default function MyBountiesPage() {
 
                         {monthlyEarnings[selectedMonthIdx].bounties.length >
                           1 && (
-                          <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-muted/20">
+                          <div className="flex items-center justify-between px-3 sam:px-4 py-2.5 border-t border-border bg-muted/20">
                             <span className="text-xs text-muted-foreground">
                               Total
                             </span>
@@ -713,8 +686,8 @@ export default function MyBountiesPage() {
 
 function EmptyState() {
   return (
-    <div className="text-center py-20 border rounded-xl bg-muted/20">
-      <p className="text-muted-foreground">
+    <div className="text-center py-14 imd:py-20 border rounded-xl bg-muted/20">
+      <p className="text-sm text-muted-foreground">
         No bounties yet. Start hunting in the marketplace!
       </p>
     </div>

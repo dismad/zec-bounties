@@ -15,6 +15,7 @@ import {
   Loader2,
   ChevronsDown,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { NewBountyModal } from "@/components/new-bounty-modal";
 import { BountyDetailModal } from "@/components/bounty-detail-modal";
@@ -105,6 +106,8 @@ function HomeContent() {
     [filteredBounties],
   );
 
+  const missingUA = !currentUser?.UA_address;
+
   const getCategoryCount = (name: string) =>
     name === "All"
       ? bounties.length
@@ -117,6 +120,21 @@ function HomeContent() {
     } finally {
       setIsLoadingMore(false);
     }
+  };
+
+  const handleNewBounty = () => {
+    if (!currentUser?.UA_address) {
+      toast.warning("Unified Address required", {
+        description: "Add a UA to your profile before creating a bounty.",
+        action: {
+          label: "Go to profile",
+          onClick: () => router.push("/profile"),
+        },
+        duration: 5000,
+      });
+      return;
+    }
+    setIsNewBountyModalOpen(true);
   };
 
   return (
@@ -135,7 +153,7 @@ function HomeContent() {
           <div className="flex gap-3">
             <Button
               className="rounded-full shadow-lg shadow-primary/20"
-              onClick={() => setIsNewBountyModalOpen(true)}
+              onClick={handleNewBounty}
             >
               <Plus className="mr-2 h-4 w-4" /> New Bounty
             </Button>

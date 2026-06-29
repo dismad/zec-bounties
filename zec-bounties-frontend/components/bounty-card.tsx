@@ -77,7 +77,7 @@ export function BountyCard({
   const isAssignedToCurrentUser =
     currentUser &&
     (bounty.assignees?.some((a) => a.userId === currentUser.id) ||
-      bounty.assignee === currentUser.id); // ← fallback for legacy single-assignee bounties
+      bounty.assignee === currentUser.id);
 
   const canSubmitWork =
     isAssignedToCurrentUser && bounty.status === "IN_PROGRESS";
@@ -190,17 +190,12 @@ export function BountyCard({
           onClick={handleCardClick}
         >
           <div className="p-3 space-y-2.5">
-            {/* Title */}
             <h3 className="text-sm font-semibold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
               {bounty.title}
             </h3>
-
-            {/* Description */}
             <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
               {bounty.description}
             </p>
-
-            {/* Tags row */}
             <div className="flex flex-wrap gap-1">
               <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
                 {bounty.categoryId}
@@ -228,8 +223,6 @@ export function BountyCard({
                 </Badge>
               )}
             </div>
-
-            {/* Footer row */}
             <div className="flex items-center justify-between pt-1 border-t border-border/50">
               <div className="flex items-center gap-1.5 min-w-0">
                 <Avatar className="h-5 w-5 border shrink-0">
@@ -278,7 +271,6 @@ export function BountyCard({
           </div>
         </Card>
 
-        {/* Work Submission Dialog */}
         <Dialog
           open={isSubmissionDialogOpen}
           onOpenChange={setIsSubmissionDialogOpen}
@@ -370,21 +362,30 @@ export function BountyCard({
           className="group transition-all hover:border-primary/50 overflow-hidden bg-card/50 backdrop-blur-sm cursor-pointer"
           onClick={handleCardClick}
         >
-          <div className="flex items-center p-4 gap-4">
-            <Avatar className="h-10 w-10 border shrink-0">
+          <div className="flex items-center p-3 imd:p-4 gap-3 imd:gap-4">
+            {/* Avatar — always visible */}
+            <Avatar className="h-8 w-8 imd:h-10 imd:w-10 border shrink-0">
               <AvatarImage
                 src={bounty.createdByUser?.avatar || "/placeholder-user.jpg"}
               />
               <AvatarFallback>{"None"}</AvatarFallback>
             </Avatar>
+
+            {/* Name + title + description (description only on <imd) */}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+              <h3 className="font-semibold truncate group-hover:text-primary transition-colors text-sm imd:text-base">
                 {bounty.title}
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 {bounty.createdByUser?.nickname || bounty.createdByUser?.name}
               </p>
+              {/* Description shown only below imd */}
+              <p className="imd:hidden text-xs text-muted-foreground line-clamp-1 mt-0.5 opacity-80">
+                {bounty.description}
+              </p>
             </div>
+
+            {/* Assignees — lg+ only, unchanged */}
             {bounty.assignees && bounty.assignees.length > 0 ? (
               <div className="hidden lg:flex flex-col gap-1 items-start px-4 border-l min-w-[140px]">
                 <span className="text-[10px] uppercase text-muted-foreground font-bold">
@@ -421,7 +422,9 @@ export function BountyCard({
                 </span>
               </div>
             )}
-            <div className="hidden md:flex flex-col gap-1 items-center px-4 border-x">
+
+            {/* Category — imd+ only (was md:) */}
+            <div className="hidden imd:flex flex-col gap-1 items-center px-4 border-x">
               <span className="text-[10px] uppercase text-muted-foreground font-bold">
                 Category
               </span>
@@ -429,7 +432,9 @@ export function BountyCard({
                 {bounty.categoryId}
               </Badge>
             </div>
-            <div className="hidden sm:flex flex-col gap-1 items-center px-4">
+
+            {/* Status — imd+ only (was sm:) */}
+            <div className="hidden imd:flex flex-col gap-1 items-center px-4">
               <span className="text-[10px] uppercase text-muted-foreground font-bold">
                 Status
               </span>
@@ -440,8 +445,10 @@ export function BountyCard({
                 {formatStatus(bounty.status)}
               </Badge>
             </div>
+
+            {/* Due date — imd+ only (was sm:) */}
             {dueDateLabel && (
-              <div className="hidden sm:flex flex-col gap-1 items-center px-4 border-l">
+              <div className="hidden imd:flex flex-col gap-1 items-center px-4 border-l">
                 <span className="text-[10px] uppercase text-muted-foreground font-bold">
                   Due
                 </span>
@@ -453,12 +460,15 @@ export function BountyCard({
                 </span>
               </div>
             )}
-            <div className="text-right pl-4">
+
+            {/* Price — always visible */}
+            <div className="text-right pl-2 imd:pl-4 shrink-0">
               <p className="font-bold text-sm">{bounty.bountyAmount} ZEC</p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="hidden imd:block text-[10px] text-muted-foreground">
                 {bounty.difficulty}
               </p>
             </div>
+
             {canSubmitWork && (
               <Button
                 size="sm"
