@@ -30,7 +30,7 @@ function getExplorerUrl(
     chain === "testnet" || serverUrl?.toLowerCase().includes("testnet");
 
   if (isTestnet) {
-    return `https://testnet.zcashexplorer.app/transactions/${txId}`;
+    return `https://zexplorer.app/testnet/tx/${txId}`;
   }
 
   return `https://blockchair.com/zcash/transaction/${txId}`;
