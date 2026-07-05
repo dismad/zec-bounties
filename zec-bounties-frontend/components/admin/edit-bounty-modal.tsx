@@ -198,6 +198,7 @@ export function EditBountyModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Bounty title"
+                  autoComplete="off"
                 />
               </div>
 

@@ -91,10 +91,10 @@ export function BountyCard({
   const hasApplied = !!userApplication;
 
   const statusColors = {
-    TO_DO: "bg-green-500/10 text-green-500 border-green-500/20",
+    TO_DO: "bg-slate-500/10 text-slate-500 border-slate-500/20",
     IN_PROGRESS: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     IN_REVIEW: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    DONE: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    DONE: "bg-green-500/10 text-green-500 border-green-500/20",
     CANCELLED: "bg-red-500/10 text-red-500 border-red-500/20",
   };
 

@@ -146,6 +146,7 @@ export function AdminBountyModal({
                   setFormData((prev) => ({ ...prev, title: e.target.value }))
                 }
                 placeholder="Enter bounty title..."
+                autoComplete="off"
                 required
               />
             </div>
