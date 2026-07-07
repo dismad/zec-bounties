@@ -1422,21 +1422,23 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch balance
   const fetchBalance = async () => {
-    if (!currentUser || currentUser.role !== "ADMIN") return;
+  if (!currentUser || currentUser.role !== "ADMIN") return;
 
-    try {
-      const res = await fetch(`${backendUrl}/api/transactions/balance`, {
-        headers: getAuthHeaders(),
-      });
+  try {
+    const res = await fetch(`${backendUrl}/api/transactions/balance`, {
+      headers: getAuthHeaders(),
+    });
 
-      if (res.ok) {
-        const data = await res.json();
-        setBalance(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch balance:", error);
+    if (res.ok) {
+      const data = await res.json();
+      // Use the main shielded balance (or fall back to 0)
+      const mainBalance = data.confirmed_orchard_balance ?? data.total_orchard_balance ?? 0;
+      setBalance(mainBalance);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch balance:", error);
+  }
+};
 
   // Fetch addresses
   const fetchAddresses = async () => {
@@ -1903,10 +1905,6 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
             fetchBounties();
             break;
 
-          case "balance_updated":
-            setBalance(msg.payload.balance);
-            break;
-
           case "work_submitted":
             fetchBounties();
             // Mirror application_created pattern
@@ -1965,8 +1963,14 @@ export function BountyProvider({ children }: { children: React.ReactNode }) {
             break;
 
           case "balance_fetched":
-            setBalance(msg.payload.balance);
-            break;
+	  const bal1 = msg.payload?.confirmed_orchard_balance ?? msg.payload?.balance ?? 0;
+	  setBalance(bal1);
+	  break;
+
+	case "balance_updated":
+	  const bal2 = msg.payload?.confirmed_orchard_balance ?? msg.payload?.balance ?? 0;
+	  setBalance(bal2);
+	  break;
 
           case "sync_status":
             setSyncStatus(msg.payload.data);
