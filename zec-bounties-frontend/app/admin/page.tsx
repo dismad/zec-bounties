@@ -323,6 +323,27 @@ export default function AdminDashboard() {
     setShowCancelledBounties(false);
   };
 
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!hasMoreBounties) return;
+
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !bountiesLoading) {
+          loadMoreBounties();
+        }
+      },
+      { rootMargin: "200px" }, // start fetching before it's actually on-screen
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMoreBounties, bountiesLoading, loadMoreBounties]);
+
   const handleStatusChange = async (
     bountyId: string,
     newStatus: BountyStatus,
@@ -1223,29 +1244,18 @@ export default function AdminDashboard() {
                   </Table>
 
                   {hasMoreBounties && (
-                    <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-6">
-                      <span className="text-xs text-muted-foreground">
-                        Showing {filteredBounties.length} bounties
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={loadMoreBounties}
-                        disabled={bountiesLoading}
-                      >
-                        {bountiesLoading ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Loading…
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="h-3.5 w-3.5" />
-                            Load more
-                          </>
-                        )}
-                      </Button>
+                    <div
+                      ref={loadMoreSentinelRef}
+                      className="flex items-center justify-center gap-2 border-t border-border px-4 py-3 text-xs text-muted-foreground sm:px-6"
+                    >
+                      {bountiesLoading ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Loading more…
+                        </>
+                      ) : (
+                        <span>Showing {filteredBounties.length} bounties</span>
+                      )}
                     </div>
                   )}
                 </CardContent>
