@@ -337,7 +337,7 @@ export default function AdminDashboard() {
           loadMoreBounties();
         }
       },
-      { rootMargin: "400px" },
+      { rootMargin: "600px" },
     );
 
     observer.observe(sentinel);
