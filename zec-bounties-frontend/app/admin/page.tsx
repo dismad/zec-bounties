@@ -337,7 +337,7 @@ export default function AdminDashboard() {
           loadMoreBounties();
         }
       },
-      { rootMargin: "200px" }, // start fetching before it's actually on-screen
+      { rootMargin: "400px" },
     );
 
     observer.observe(sentinel);
