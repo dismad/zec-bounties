@@ -2,13 +2,13 @@
 
 Propose tasks, review work, and pay contributors with shielded ZEC.
 
-Individuals and **[Teams](teams.md)** both use this flow. Teams typically pay from a shared wallet; hunters who later post a bounty still pay from a personal wallet.
-
 ## Workflow
 
 ### 1. Propose a bounty
 
-Create a bounty with a clear title, description, ZEC amount, and deadline. Spell out acceptance criteria so submissions are easy to judge.
+Create a bounty with a clear title, description, ZEC reward, and deadline.
+The form only accepts ZEC. Pick that number from the USD intervals in [Bounty amounts](bounty-amounts.md).
+Spell out acceptance criteria so submissions are easy to judge.
 
 ### 2. Admin approval
 
@@ -20,16 +20,20 @@ Review applicants and assign the contributor(s) who should do the work.
 
 ### 4. Review submissions
 
-When work is submitted, review the deliverable against the description. Request changes or approve.
+When work is submitted, review the deliverable against the description.
+Request changes or approve.
 
 ### 5. Payout
 
-After approval, payment can be triggered (one-click or batched by admins). Funds are sent as a shielded transaction to the assignee’s registered UA. A transaction ID is stored for transparency.
+After approval, payment can be triggered (one-click or batched by admins).
+Funds are sent as a shielded transaction to the assignee’s registered UA.
+A transaction ID is stored for transparency.
+If the ZEC/USD spot has moved ≥ 20% or more than 7 days have passed, edit the ZEC reward before paying so the implied USD band still holds — [Bounty amounts](bounty-amounts.md).
 
 ## Writing a good bounty
 
 - Specific scope — what “done” looks like
-- Fair ZEC amount for the effort
+- A ZEC reward chosen from the suggested USD intervals — [Bounty amounts](bounty-amounts.md)
 - Links to repos, designs, or prior art when relevant
 - Realistic deadline
 
@@ -41,4 +45,4 @@ After approval, payment can be triggered (one-click or batched by admins). Funds
 
 ## Next
 
-[Teams →](teams.md) · [Privacy & payments →](privacy-payments.md)
+[Bounty amounts →](bounty-amounts.md)

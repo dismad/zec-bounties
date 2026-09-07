@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
+import { AdminNavbar } from "@/components/layout/admin/navbar";
+import { useBounty } from "@/lib/bounty-context";
 import { cn } from "@/lib/utils";
 import { BookOpen } from "lucide-react";
 
@@ -14,6 +16,7 @@ const NAV = [
   { href: "/docs/teams", label: "Teams" },
   { href: "/docs/contributors", label: "Contributors" },
   { href: "/docs/creators", label: "Creators" },
+  { href: "/docs/bounty-amounts", label: "Bounty amounts" },
   { href: "/docs/privacy-payments", label: "Privacy & payments" },
   { href: "/docs/badges", label: "Badges" },
   { href: "/docs/faq", label: "FAQ" },
@@ -21,10 +24,12 @@ const NAV = [
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { currentUser } = useBounty();
+  const isAdmin = currentUser?.role === "ADMIN";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Navbar />
+      {isAdmin ? <AdminNavbar /> : <Navbar />}
       <div className="mx-auto max-w-6xl px-4 py-8 flex gap-10">
         <aside className="hidden md:block w-52 shrink-0">
           <div className="sticky top-20 space-y-1">

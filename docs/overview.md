@@ -25,6 +25,7 @@ New accounts pick one role at onboarding:
 - **[Teams](teams.md)** — Organization role, members, wallet, verification
 - **[Contributors](contributors.md)** — Browse, apply, submit work, receive ZEC
 - **[Creators](creators.md)** — Propose bounties, review work, pay out
+- **[Bounty amounts](bounty-amounts.md)** — How to suggest a ZEC reward using implicit USD intervals
 - **[Privacy & payments](privacy-payments.md)** — How shielded payouts work
 - **[FAQ](faq.md)** — Common questions
 

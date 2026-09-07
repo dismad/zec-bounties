@@ -92,7 +92,6 @@ const FAQS = [
       </>
     ),
   },
-
   {
     q: "My work was approved but I have not been paid.",
     a: (
@@ -118,6 +117,41 @@ const FAQS = [
       <>
         Yes. Live payouts use mainnet ZEC. Treat amounts and addresses as real
         value.
+      </>
+    ),
+  },
+  {
+    q: "Why did the ZEC amount on a bounty change?",
+    a: (
+      <>
+        The form only stores ZEC. Creators pick that number from an implicit
+        USD interval (<code>usd_target / zec_usd_spot</code>). If the spot
+        moves ≥ 20%, a week has passed, or payout is about to run, they should
+        edit the ZEC field so the implied dollar value stays in the same band.
+        See{" "}
+        <Link
+          href="/docs/bounty-amounts"
+          className="text-primary hover:underline"
+        >
+          Bounty amounts
+        </Link>
+        .
+      </>
+    ),
+  },
+  {
+    q: "Are the old tip amounts (0.05 ZEC, 0.08 ZEC, …) still used?",
+    a: (
+      <>
+        Those were snapshots at an older ZEC/USD rate. Suggest from the USD
+        intervals on{" "}
+        <Link
+          href="/docs/bounty-amounts"
+          className="text-primary hover:underline"
+        >
+          Bounty amounts
+        </Link>
+        , then enter the converted ZEC amount.
       </>
     ),
   },

@@ -45,6 +45,14 @@ No. For normal use the platform only needs your receive address. Never paste a s
 
 Yes. Live payouts use mainnet ZEC. Treat amounts and addresses as real value.
 
+## Why did the ZEC amount on a bounty change?
+
+The form only stores ZEC. Creators pick that number from an implicit USD interval (`usd_target / zec_usd_spot`). If the spot moves ≥ 20%, a week has passed, or payout is about to run, they should edit the ZEC field so the implied dollar value stays in the same band. See [Bounty amounts](bounty-amounts.md).
+
+## Are the old tip amounts (0.05 ZEC, 0.08 ZEC, …) still used?
+
+Those were snapshots at an older ZEC/USD rate. Suggest from the USD intervals on [Bounty amounts](bounty-amounts.md), then enter the converted ZEC amount.
+
 ## Where do I get help?
 
 - [GitHub issues](https://github.com/ZecHub/zec-bounties/issues)

@@ -21,9 +21,16 @@ export default function CreatorsPage() {
         <h2 className="text-xl font-semibold">Workflow</h2>
 
         <Step n={1} title="Propose a bounty">
-          Create a bounty with a clear title, description, ZEC amount, and
-          deadline. Spell out acceptance criteria so submissions are easy to
-          judge.
+          Create a bounty with a clear title, description, ZEC reward, and
+          deadline. The form only accepts ZEC. Pick that number from the USD
+          intervals in{" "}
+          <Link
+            href="/docs/bounty-amounts"
+            className="text-primary hover:underline"
+          >
+            Bounty amounts
+          </Link>
+          . Spell out acceptance criteria so submissions are easy to judge.
         </Step>
         <Step n={2} title="Admin approval">
           New bounties typically need admin approval before they go live on the
@@ -40,7 +47,16 @@ export default function CreatorsPage() {
         <Step n={5} title="Payout">
           After approval, payment can be triggered (one-click or batched by
           admins). Funds are sent as a shielded transaction to the assignee’s
-          registered UA. A transaction ID is stored for transparency.
+          registered UA. A transaction ID is stored for transparency. Recheck
+          the ZEC reward if the spot has moved ≥ 20% or more than 7 days
+          have passed so the implied USD band still holds —{" "}
+          <Link
+            href="/docs/bounty-amounts"
+            className="text-primary hover:underline"
+          >
+            Bounty amounts
+          </Link>
+          .
         </Step>
       </section>
 
@@ -48,7 +64,15 @@ export default function CreatorsPage() {
         <h2 className="text-xl font-semibold">Writing a good bounty</h2>
         <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
           <li>Specific scope — what “done” looks like</li>
-          <li>Fair ZEC amount for the effort</li>
+          <li>
+            A ZEC reward chosen from the suggested USD intervals —{" "}
+            <Link
+              href="/docs/bounty-amounts"
+              className="text-primary hover:underline"
+            >
+              Bounty amounts
+            </Link>
+          </li>
           <li>Links to repos, designs, or prior art when relevant</li>
           <li>Realistic deadline</li>
         </ul>
@@ -80,10 +104,10 @@ export default function CreatorsPage() {
       <p className="text-sm text-muted-foreground border-t pt-6">
         Next:{" "}
         <Link
-          href="/docs/privacy-payments"
+          href="/docs/bounty-amounts"
           className="text-primary hover:underline"
         >
-          Privacy & payments →
+          Bounty amounts →
         </Link>
       </p>
     </div>

@@ -28,6 +28,7 @@ import type { BountyFormData } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { toDateInputValue, parseDateInputValue } from "@/lib/utils";
+import { RewardAmountHint } from "@/components/reward-amount-hint";
 
 interface CreateBountyFormProps {
   onSuccess?: () => void;
@@ -61,40 +62,34 @@ export function AdminBountyModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedAssignee, setSelectedAssignee] = useState("unassigned");
   const hunters = DUMMY_USERS.filter((u) => u.type === "hunter");
-
   const availableUsers = nonAdminUsers;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.title.trim()) {
       toast.error("Title is required", {
         description: "Please enter a title for the bounty.",
       });
       return;
     }
-
     if (!formData.category) {
       toast.error("Category is required", {
         description: "Please select a category.",
       });
       return;
     }
-
     if (!formData.bountyAmount || formData.bountyAmount <= 0) {
       toast.error("Invalid reward amount", {
         description: "Please enter a reward amount greater than 0.",
       });
       return;
     }
-
     if (!formData.description.trim()) {
       toast.error("Description is required", {
         description: "Please describe the bounty requirements.",
       });
       return;
     }
-
     setIsSubmitting(true);
     try {
       await createBounty(formData);
@@ -208,10 +203,12 @@ export function AdminBountyModal({
                 </Select>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="admin-reward">Reward (ZEC)</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="admin-reward">Reward (ZEC)</Label>
+                  <RewardAmountHint />
+                </div>
                 <Input
                   id="admin-reward"
                   type="number"
